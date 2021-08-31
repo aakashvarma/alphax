@@ -136,7 +136,7 @@ class AlphaX:
                 "current_asset_price": self.get_current_asset_price(client)
         }
 
-        print(self._ledger_dict)
+        # print(self._ledger_dict)
         
         if self._trigger is True:
             _asset_ledger.append(self._ledger_dict)
