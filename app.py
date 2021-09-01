@@ -27,7 +27,7 @@ sched.start()
 
 @app.route("/")
 def index():
-    return "welcome to the future. -AlphaX"
+    return "welcome to the future 1Hr. -AlphaX"
 
 
 @app.route("/trigger_points/")
