@@ -170,7 +170,7 @@ class AlphaX:
 
     def run(self, client, _asset_ledger):
         self.set_asset_pair("BTCUSDT")
-        self.set_kline_interval("15m")
+        self.set_kline_interval("1hr")
         self.set_timeperiods(25, 7)
         self.dump_asset_kline_history(client)
         self.calculate_ema(client, _asset_ledger)
