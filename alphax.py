@@ -138,8 +138,8 @@ class AlphaX:
 
         # print(self._ledger_dict)
         
-        if self._trigger is True:
-            _asset_ledger.append(self._ledger_dict)
+        # if self._trigger is True:
+        _asset_ledger.append(self._ledger_dict)
 
         # --------------------Can be commented out---------------------
         # List = [datetime.now(self._timezone).strftime("%Y-%m-%d %H:%M:%S.%f"), ema_long_adjusted, ema_short_adjusted,
