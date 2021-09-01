@@ -21,7 +21,7 @@ def execute():
     bot.run(client, _asset_ledger)
 
 sched = BackgroundScheduler(daemon=True)
-sched.add_job(execute, 'interval', minutes=1)
+sched.add_job(execute, 'interval', minutes=15)
 sched.start()
 
 
