@@ -5,10 +5,6 @@ import os
 from binance.client import Client
 from apscheduler.schedulers.background import BackgroundScheduler
 
-app = Flask(__name__)
-
-_asset_ledger = []
-
 api_key = os.environ.get('binance_api')
 api_secret = os.environ.get('binance_secret')
 
@@ -16,23 +12,26 @@ client = Client(api_key, api_secret)
 client.API_URL = 'https://api.binance.com/api'
 
 bot = AlphaX()
+bot1 = AlphaX()
 
 def execute():
-    bot.run(client, _asset_ledger)
+    bot.run(client, "BTCUSDT", "15m", 50, 14)
+    bot1.run(client, "BTCUSDT", "1h", 50, 14)
+
 
 sched = BackgroundScheduler(daemon=True)
-sched.add_job(execute, 'interval', minutes=60)
+sched.add_job(execute, 'interval', minutes=1)
 sched.start()
+
+
+# __________ flask app _____________
+
+app = Flask(__name__)
 
 
 @app.route("/")
 def index():
-    return "welcome to the future 1Hr. -AlphaX"
-
-
-@app.route("/trigger_points/")
-def get_data():
-    return str(_asset_ledger)
+    return "welcome to the future. -AlphaX"
 
 
 if __name__ == "__main__":

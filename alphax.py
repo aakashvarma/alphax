@@ -103,48 +103,58 @@ class AlphaX:
 
     def dump_asset_kline_history(self, client):
         timestamp = self.get_timestamp_unixtime()
-        bars = client.get_historical_klines(
-            self._asset_pair, self._kline_interval, timestamp, limit=1000)
+        bars = client.get_historical_klines(self._asset_pair,
+                                            self._kline_interval,
+                                            timestamp,
+                                            limit=1000)
 
         for line in bars:
             del line[5:]
 
-        self._asset_df = pd.DataFrame(
-            bars, columns=['date', 'open', 'high', 'low', 'close'])
-        self._asset_df.set_index('date', inplace=True)
+        # remove last entry in bars list
+        bars.pop()
 
-    def calculate_ema(self, client, _asset_ledger=None):
+        self._asset_df = pd.DataFrame(bars, columns=['date', 'open', 'high', 'low', 'close'])
+        self._asset_df.set_index('date', inplace=True)
+        self._asset_df.to_csv("btc_500_dump.csv")
+
+    def calculate_ema(self, client, file_name):
         ts = self._adj_column_names(self._asset_df)
         ema_long = EMA(ts, timeperiod=self._long_timeperiod)
         ema_short = EMA(ts, timeperiod=self._short_timeperiod)
 
         ema_long_adjusted = pd.DataFrame(ema_long, columns=['ema']).iat[-1, 0]
-        ema_short_adjusted = pd.DataFrame(
-            ema_short, columns=['ema']).iat[-1, 0]
+        ema_short_adjusted = pd.DataFrame(ema_short, columns=['ema']).iat[-1, 0]
 
         # trigger logic
         self._current_signal = 1 if ema_long_adjusted < ema_short_adjusted else 0
         self._trigger = True if (self._current_signal != self._previous_signal) else False
 
         self._ledger_dict = {
-                "time": datetime.now(self._timezone).strftime("%Y-%m-%d %H:%M:%S.%f"),
-                "ema_long": ema_long_adjusted,
-                "ema_short": ema_short_adjusted,
-                "current_signal": self._current_signal,
-                "previous_signal": self._previous_signal,
-                "trigger": self._trigger,
-                "current_asset_price": self.get_current_asset_price(client)
+            "time": datetime.now(self._timezone).strftime("%Y-%m-%d %H:%M:%S.%f"),
+            "file_dump": file_name,
+            "ema_long": ema_long_adjusted,
+            "ema_short": ema_short_adjusted,
+            "current_signal": self._current_signal,
+            "previous_signal": self._previous_signal,
+            "trigger": self._trigger,
+            "current_asset_price": self.get_current_asset_price(client)
         }
 
-        # print(self._ledger_dict)
-        
-        if self._trigger is True:
-            _asset_ledger.append(self._ledger_dict)
+        print(self._ledger_dict)
 
         # --------------------Can be commented out---------------------
-        # List = [datetime.now(self._timezone).strftime("%Y-%m-%d %H:%M:%S.%f"), ema_long_adjusted, ema_short_adjusted,
-        #         self._current_signal, self._previous_signal, self._trigger, self.get_current_asset_price(client)]
-        # self._write_to_csv(List, "btc_25_7.csv")
+        if self._trigger is True:
+
+            List = [datetime.now(self._timezone).strftime("%Y-%m-%d %H:%M:%S.%f"),
+                    ema_long_adjusted,
+                    ema_short_adjusted,
+                    self._current_signal,
+                    self._previous_signal,
+                    self._trigger,
+                    self.get_current_asset_price(client)]
+
+            self._write_to_csv(List, file_name)
         # -------------------------------------------------------------
 
         self._previous_signal = self._current_signal
@@ -168,10 +178,10 @@ class AlphaX:
         #     quantity=100,
         #     price=200)
 
-    def run(self, client, _asset_ledger):
-        self.set_asset_pair("BTCUSDT")
-        self.set_kline_interval("1hr")
-        self.set_timeperiods(25, 7)
+    def run(self, client, asset_pair, interval, long_timeperiod, short_timeperiod):
+        self.set_asset_pair(asset_pair)
+        self.set_kline_interval(interval)
+        self.set_timeperiods(long_timeperiod, short_timeperiod)
         self.dump_asset_kline_history(client)
-        self.calculate_ema(client, _asset_ledger)
-
+        file_name = asset_pair+"_"+interval+"_"+str(long_timeperiod)+"_"+str(short_timeperiod)+".csv"
+        self.calculate_ema(client, file_name)
